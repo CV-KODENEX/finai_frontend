@@ -27,7 +27,9 @@ class Security {
 
     try {
       final encrypted = cipher.process(Uint8List.fromList(data.codeUnits));
-      return hex.encode(encrypted);
+      // Return IV + Encrypted Data
+      final combined = Uint8List.fromList(iv.bytes + encrypted);
+      return hex.encode(combined);
     } catch (e) {
       log(e.toString());
       return null;
@@ -36,10 +38,25 @@ class Security {
 
   static String? decryptAes(String? encryptedData, {String? masterKey}) {
     try {
+      if (encryptedData == null || encryptedData.isEmpty) {
+        return null;
+      }
+
+      final decodedData = hex.decode(encryptedData);
+      if (decodedData.length < 16) {
+        log('Error decrypt: Data too short to contain IV');
+        return null;
+      }
+
+      // Extract IV (first 16 bytes)
+      final ivBytes = Uint8List.fromList(decodedData.sublist(0, 16));
+      final encryptedBytes = Uint8List.fromList(decodedData.sublist(16));
+
       final paddedPassword =
           _getPaddedPassword(masterKey ?? Constant.masterKey, 128);
       final key = KeyParameter(paddedPassword);
-      final iv = IV.fromLength(16);
+      final iv = IV(ivBytes);
+
       final cipher =
           PaddedBlockCipherImpl(PKCS7Padding(), CBCBlockCipher(AESEngine()));
       final params =
@@ -49,11 +66,11 @@ class Security {
       );
       cipher.init(false, params);
 
-      final encrypted = hex.decode(encryptedData ?? '');
-      final decrypted = cipher.process(Uint8List.fromList(encrypted));
+      final decrypted = cipher.process(encryptedBytes);
       return String.fromCharCodes(decrypted);
     } catch (e, s) {
       log('error decrypt : $e');
+      log('decrypt input: $encryptedData');
       log('decrypt stacks : $s');
       return null;
     }

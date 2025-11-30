@@ -5,9 +5,14 @@ class Constant {
 
   /// Database
   static String dbName = 'mobile_finai.db';
-  static int dbVersion = 1;
+  static int dbVersion = 2;
   static String userTable = 'user';
   static String languageTable = 'language';
+  static String transactionTable = 'transactions';
+  static String categoryTable = 'categories';
+  static String budgetTable = 'budgets';
+  static String goalTable = 'goals';
+  static String chatTable = 'chat_history';
 
   /// Localization
   static Locale localeEn = const Locale('en', 'US');

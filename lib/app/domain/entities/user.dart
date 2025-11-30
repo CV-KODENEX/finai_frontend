@@ -40,9 +40,7 @@ class User {
   }
 
   static Future<User> fromDb(Map<String, dynamic> json) async => User(
-        userId: json['userId'] == null
-            ? null
-            : int.tryParse(Security.decryptAes(json['id'].toString()) ?? '0'),
+        userId: json['id'],
         username: json['username'] == null
             ? null
             : Security.decryptAes(json['username']),

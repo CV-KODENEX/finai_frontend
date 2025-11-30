@@ -17,6 +17,14 @@ class Preferences {
     return prefs?.getString(key).toString() ?? '';
   }
 
+  static bool getBoolPref(String key) {
+    return prefs?.getBool(key) ?? false;
+  }
+
+  static bool? getBoolPrefNullable(String key) {
+    return prefs?.getBool(key);
+  }
+
   Future<String?> getStringAs(String key) async {
     return prefs?.getString(key);
   }
@@ -24,6 +32,15 @@ class Preferences {
   static void getKey() async {
     prefs = await SharedPreferences.getInstance();
   }
+}
+
+class Const {
+  static const String language = "language";
+  static const String locale = "locale";
+  static const String currentUserId = "currentUserId";
+  static const String isLoggedIn = "isLoggedIn";
+  static const String userName = "userName";
+  static const String isDarkMode = "isDarkMode";
 }
 
 class Prefs {
@@ -38,69 +55,70 @@ class Prefs {
 
   static Future setLocale(String value) =>
       PreferencesHelper.setString(Const.locale, value);
-}
 
-class Const {
-  static const String language = "language";
-  static const String locale = "locale";
+  static Future<String?> get getCurrentUserId =>
+      PreferencesHelper.getString(Const.currentUserId);
+
+  static Future setCurrentUserId(String value) =>
+      PreferencesHelper.setString(Const.currentUserId, value);
+
+  static Future<bool> get getIsLoggedIn =>
+      PreferencesHelper.getBool(Const.isLoggedIn);
+
+  static Future setIsLoggedIn(bool value) =>
+      PreferencesHelper.setBool(Const.isLoggedIn, value);
+
+  static Future<String?> get getUserName =>
+      PreferencesHelper.getString(Const.userName);
+
+  static Future setUserName(String value) =>
+      PreferencesHelper.setString(Const.userName, value);
+
+  static Future<bool> get getIsDarkMode =>
+      PreferencesHelper.getBool(Const.isDarkMode);
+
+  static Future setIsDarkMode(bool value) =>
+      PreferencesHelper.setBool(Const.isDarkMode, value);
 }
 
 class PreferencesHelper {
   static Future<bool> getBool(String key) async {
     final p = await prefs;
-
-    try {
-      return p.getBool(Security.encryptAes(key) ?? '') ?? false;
-    } catch (e) {
-      return p.getBool(key) ?? false;
-    }
+    return p.getBool(key) ?? false;
   }
 
   static Future<bool?> getBoolNullable(String key) async {
     final p = await prefs;
-    try {
-      return p.getBool(Security.encryptAes(key) ?? '');
-    } catch (e) {
-      return p.getBool(key);
-    }
+    return p.getBool(key);
   }
 
   static Future setBool(String key, bool value) async {
     final p = await prefs;
-
-    try {
-      return p.setBool(Security.encryptAes(key) ?? '', value);
-    } catch (e) {
-      return p.setBool(key, value);
-    }
+    return p.setBool(key, value);
   }
 
   static Future<int> getInt(String key) async {
     final p = await prefs;
-    try {
-      return p.getInt(Security.encryptAes(key) ?? '') ?? 0;
-    } catch (e) {
-      return p.getInt(key) ?? 0;
-    }
+    return p.getInt(key) ?? 0;
   }
 
   static Future setInt(String key, int value) async {
     final p = await prefs;
-
-    try {
-      return p.setInt(Security.encryptAes(key) ?? '', value);
-    } catch (e) {
-      return p.setInt(key, value);
-    }
+    return p.setInt(key, value);
   }
 
   static Future<String?> getString(String key) async {
     final p = await prefs;
 
     try {
-      var decrypt = Security.decryptAes(
-          p.getString(Security.encryptAes(key) ?? '') ?? '');
-      return decrypt;
+      // Try to decrypt the value (assuming it's encrypted)
+      var storedValue = p.getString(key);
+      if (storedValue == null) return null;
+
+      var decrypt = Security.decryptAes(storedValue);
+      // If decryption returns null (and storedValue wasn't empty), it might be plain text or decryption failed.
+      // But based on previous logic, we assume encrypted.
+      return decrypt ?? storedValue;
     } catch (e) {
       return p.getString(key);
     }
@@ -108,33 +126,18 @@ class PreferencesHelper {
 
   static Future setString(String key, String value) async {
     final p = await prefs;
-    //return p.setString(key, value);
-
-    try {
-      return p.setString(
-          Security.encryptAes(key) ?? '', Security.encryptAes(value) ?? '');
-    } catch (e) {
-      return p.setString(key, value);
-    }
+    // Encrypt value only
+    return p.setString(key, Security.encryptAes(value) ?? value);
   }
 
   static Future<double> getDouble(String key) async {
     final p = await prefs;
-    try {
-      return p.getDouble(Security.encryptAes(key) ?? '') ?? 0.0;
-    } catch (e) {
-      return p.getDouble(key) ?? 0.0;
-    }
+    return p.getDouble(key) ?? 0.0;
   }
 
   static Future setDouble(String key, double value) async {
     final p = await prefs;
-
-    try {
-      return p.setDouble(Security.encryptAes(key) ?? '', value);
-    } catch (e) {
-      return p.setDouble(key, value);
-    }
+    return p.setDouble(key, value);
   }
 
   static Future<SharedPreferences> get prefs => SharedPreferences.getInstance();
@@ -142,7 +145,9 @@ class PreferencesHelper {
   static void removeAll() async {
     final p = await prefs;
 
-    p.remove(Security.encryptAes(Const.language) ?? '');
-    p.remove(Security.encryptAes(Const.locale) ?? '');
+    p.remove(Const.language);
+    p.remove(Const.locale);
+    p.remove(Const.currentUserId);
+    p.remove(Const.isLoggedIn);
   }
 }
