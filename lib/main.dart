@@ -2,6 +2,7 @@ import 'package:finai_frontend/app/domain/entities/constant.dart';
 import 'package:finai_frontend/app/domain/entities/global.dart';
 import 'package:finai_frontend/app/presentation/pages/splash/splash_screen_page.dart';
 import 'package:finai_frontend/core/services/injection.dart';
+import 'package:finai_frontend/core/style/app_theme.dart';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -23,21 +24,9 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       title: Constant.appName,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        useMaterial3: false,
-        brightness: Brightness.light,
-      ),
-      darkTheme: ThemeData(
-        primarySwatch: Colors.blue,
-        useMaterial3: false,
-        brightness: Brightness.dark,
-      ),
-      themeMode: (Preferences.getBoolPrefNullable(Const.isDarkMode) == null)
-          ? ThemeMode.system
-          : (Preferences.getBoolPrefNullable(Const.isDarkMode) == true
-              ? ThemeMode.dark
-              : ThemeMode.light),
+      theme: AppTheme.darkTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.dark,
       navigatorKey: getIt<Global>().navigatorKey,
       initialRoute: '/',
       debugShowCheckedModeBanner: false,

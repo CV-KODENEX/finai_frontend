@@ -1,7 +1,11 @@
+import 'dart:ui';
+
 import 'package:finai_frontend/app/domain/entities/chat_item.dart';
 import 'package:finai_frontend/core/database/chat_db.dart';
+import 'package:finai_frontend/core/style/app_theme.dart';
 import 'package:finai_frontend/core/util/preferences.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 
 class ChatPage extends StatefulWidget {
@@ -87,25 +91,48 @@ class _ChatPageState extends State<ChatPage> {
   String _getBotResponse(String input) {
     input = input.toLowerCase();
     if (input.contains('hello') || input.contains('hi')) {
-      return 'Hello! I am Artha, your financial assistant. How can I help you today?';
+      return 'Greetings. I am ARTHA, your advanced financial intelligence. How may I assist you today?';
     } else if (input.contains('expense') || input.contains('spent')) {
-      return 'I can help you track your expenses. Just tell me what you bought and how much it cost.';
+      return 'I can analyze your expenditure patterns. Please provide the transaction details.';
     } else if (input.contains('budget')) {
-      return 'You can set your budget in the Stats page. Do you want me to show you your current budget status?';
+      return 'Budget optimization is key. You can configure your limits in the Stats module.';
     } else if (input.contains('advice') || input.contains('tip')) {
-      return 'My tip for today: Try to save at least 20% of your income for future goals.';
+      return 'Optimization Tip: Allocating 20% of income to savings increases long-term financial stability.';
     }
-    return 'I see. Tell me more about your financial goals or transactions.';
+    return 'I am processing your input. Could you elaborate on your financial query?';
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Artha Bot'),
+        backgroundColor: AppTheme.surfaceDark.withOpacity(0.8),
+        flexibleSpace: ClipRRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(color: Colors.transparent),
+          ),
+        ),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.auto_awesome,
+                color: AppTheme.primaryNeon, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              'ARTHA AI',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: AppTheme.textWhite,
+                    letterSpacing: 1.5,
+                  ),
+            ),
+          ],
+        ),
+        centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.delete_outline),
+            icon: const Icon(Icons.delete_outline, color: AppTheme.accentPink),
             onPressed: () async {
               String userId = await Prefs.getCurrentUserId ?? '';
               await ChatDb.instance.clearChat(userId);
@@ -114,125 +141,222 @@ class _ChatPageState extends State<ChatPage> {
           ),
         ],
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _messages.isEmpty
+          // Background
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppTheme.backgroundBlack,
+                    Color(0xFF050510),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          Column(
+            children: [
+              Expanded(
+                child: _isLoading
                     ? const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.chat_bubble_outline,
-                                size: 64, color: Colors.grey),
-                            SizedBox(height: 16),
-                            Text('Start chatting with Artha Bot!',
-                                style: TextStyle(color: Colors.grey)),
-                          ],
-                        ),
-                      )
-                    : ListView.builder(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _messages.length,
-                        itemBuilder: (context, index) {
-                          final msg = _messages[index];
-                          final isUser = msg.isUser == 1;
-                          return Align(
-                            alignment: isUser
-                                ? Alignment.centerRight
-                                : Alignment.centerLeft,
-                            child: Container(
-                              margin: const EdgeInsets.symmetric(vertical: 4),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 10),
-                              decoration: BoxDecoration(
-                                color:
-                                    isUser ? Colors.blue : Colors.grey.shade200,
-                                borderRadius:
-                                    BorderRadius.circular(20).copyWith(
-                                  bottomRight: isUser
-                                      ? Radius.zero
-                                      : const Radius.circular(20),
-                                  bottomLeft: isUser
-                                      ? const Radius.circular(20)
-                                      : Radius.zero,
+                        child: CircularProgressIndicator(
+                            color: AppTheme.primaryNeon))
+                    : _messages.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(20),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color:
+                                        AppTheme.primaryNeon.withOpacity(0.1),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppTheme.primaryNeon
+                                            .withOpacity(0.2),
+                                        blurRadius: 30,
+                                        spreadRadius: 10,
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Icon(Icons.chat_bubble_outline,
+                                      size: 64, color: AppTheme.primaryNeon),
+                                )
+                                    .animate(
+                                        onPlay: (c) => c.repeat(reverse: true))
+                                    .scale(
+                                        begin: const Offset(0.9, 0.9),
+                                        end: const Offset(1.1, 1.1)),
+                                const SizedBox(height: 24),
+                                Text(
+                                  'INITIALIZE CHAT SEQUENCE',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelLarge
+                                      ?.copyWith(
+                                        color: AppTheme.textGrey,
+                                        letterSpacing: 2,
+                                      ),
                                 ),
-                              ),
-                              constraints: BoxConstraints(
-                                  maxWidth:
-                                      MediaQuery.of(context).size.width * 0.75),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    msg.message ?? '',
-                                    style: TextStyle(
-                                        color: isUser
-                                            ? Colors.white
-                                            : Colors.black87),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    DateFormat('HH:mm').format(DateTime.parse(
-                                        msg.timestamp ??
-                                            DateTime.now().toIso8601String())),
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: isUser
-                                          ? Colors.white70
-                                          : Colors.black54,
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            controller: _scrollController,
+                            padding: const EdgeInsets.fromLTRB(16, 100, 16, 16),
+                            itemCount: _messages.length,
+                            itemBuilder: (context, index) {
+                              final msg = _messages[index];
+                              final isUser = msg.isUser == 1;
+                              return Align(
+                                alignment: isUser
+                                    ? Alignment.centerRight
+                                    : Alignment.centerLeft,
+                                child: Container(
+                                  margin:
+                                      const EdgeInsets.symmetric(vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 20, vertical: 12),
+                                  decoration: BoxDecoration(
+                                    color: isUser
+                                        ? AppTheme.primaryNeon.withOpacity(0.2)
+                                        : AppTheme.surfaceDark,
+                                    borderRadius:
+                                        BorderRadius.circular(20).copyWith(
+                                      bottomRight: isUser
+                                          ? Radius.zero
+                                          : const Radius.circular(20),
+                                      bottomLeft: isUser
+                                          ? const Radius.circular(20)
+                                          : Radius.zero,
                                     ),
+                                    border: Border.all(
+                                      color: isUser
+                                          ? AppTheme.primaryNeon
+                                              .withOpacity(0.5)
+                                          : Colors.white.withOpacity(0.1),
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: isUser
+                                            ? AppTheme.primaryNeon
+                                                .withOpacity(0.1)
+                                            : Colors.black.withOpacity(0.2),
+                                        blurRadius: 10,
+                                      ),
+                                    ],
                                   ),
-                                ],
+                                  constraints: BoxConstraints(
+                                      maxWidth:
+                                          MediaQuery.of(context).size.width *
+                                              0.75),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        msg.message ?? '',
+                                        style: TextStyle(
+                                          color: isUser
+                                              ? AppTheme.textWhite
+                                              : AppTheme.textWhite
+                                                  .withOpacity(0.9),
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        DateFormat('HH:mm').format(
+                                            DateTime.parse(msg.timestamp ??
+                                                DateTime.now()
+                                                    .toIso8601String())),
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: isUser
+                                              ? AppTheme.textWhite
+                                                  .withOpacity(0.6)
+                                              : AppTheme.textGrey,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ).animate().fadeIn().slideY(begin: 0.2, end: 0),
+                              );
+                            },
+                          ),
+              ),
+              ClipRRect(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceDark.withOpacity(0.8),
+                      border: Border(
+                          top:
+                              BorderSide(color: Colors.white.withOpacity(0.1))),
+                    ),
+                    child: SafeArea(
+                      top: false,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                    color:
+                                        AppTheme.primaryNeon.withOpacity(0.3)),
+                              ),
+                              child: TextField(
+                                controller: _messageController,
+                                style: const TextStyle(color: Colors.white),
+                                decoration: InputDecoration(
+                                  hintText: 'Enter command...',
+                                  hintStyle: TextStyle(
+                                      color:
+                                          AppTheme.textGrey.withOpacity(0.5)),
+                                  border: InputBorder.none,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 20, vertical: 12),
+                                ),
+                                onSubmitted: (_) => _sendMessage(),
                               ),
                             ),
-                          );
-                        },
+                          ),
+                          const SizedBox(width: 12),
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppTheme.primaryNeon,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.primaryNeon.withOpacity(0.4),
+                                  blurRadius: 10,
+                                ),
+                              ],
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.send_rounded,
+                                  color: Colors.black),
+                              onPressed: _sendMessage,
+                            ),
+                          ),
+                        ],
                       ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  spreadRadius: 1,
-                  blurRadius: 5,
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _messageController,
-                    decoration: InputDecoration(
-                      hintText: 'Type a message...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(24),
-                        borderSide: BorderSide.none,
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey.shade100,
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 10),
                     ),
-                    onSubmitted: (_) => _sendMessage(),
                   ),
                 ),
-                const SizedBox(width: 8),
-                CircleAvatar(
-                  backgroundColor: Colors.blue,
-                  child: IconButton(
-                    icon: const Icon(Icons.send, color: Colors.white),
-                    onPressed: _sendMessage,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
